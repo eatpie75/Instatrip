@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>DocStrap Source: instagram.js</title>
+
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
+
+	<link type="text/css" rel="stylesheet" href="styles/site.cosmo.css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top navbar-inverse">
+<div class="container">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="index.html">DocStrap</a>
+	</div>
+	<div class="navbar-collapse">
+		<ul class="nav navbar-nav">
+			
+			<li class="dropdown">
+				<a href="modules.list.html" class="dropdown-toggle" data-toggle="dropdown">Modules<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="module-foursquare.html">foursquare</a></li><li><a href="module-maps.html">maps</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="global.html" class="dropdown-toggle" data-toggle="dropdown">Global<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="global.html#getInstaDataById">getInstaDataById</a></li><li><a href="global.html#getInstaLocation">getInstaLocation</a></li><li><a href="global.html#obtainInstaData">obtainInstaData</a></li><li><a href="global.html#photoParser">photoParser</a></li>
+				</ul>
+			</li>
+			
+		</ul>
+	</div>
+</div>
+</div>
+
+
+<div class="container">
+<div class="row">
+
+	
+	<div class="col-md-12">
+	
+		<div id="main">
+    		<h1 class="page-title">Source: instagram.js</h1>
+			
+
+		<h1 class="page-title">Source: instagram.js</h1>
+    
+<section>
+	<article>
+		<pre
+			class="sunlight-highlight-javascript linenums">var instagram = require('instagram-node-lib');
+var Promise = require('bluebird');
+
+var keys = {};
+if (process.env.NODE_ENV === 'production') {
+  keys.INSTAGRAM_ID = process.env.INSTAGRAM_ID;
+  keys.INSTAGRAM_SECRET = process.env.INSTAGRAM_SECRET;
+} else {
+  keys = require('../config.js');
+}
+
+instagram.set('client_id', keys.INSTAGRAM_ID);
+instagram.set('client_secret', keys.INSTAGRAM_SECRET);
+
+
+
+/**
+* Gets instagram photos tagged with a specific location.
+* Searches by instagram-location-ID
+*/
+var getInstaDataById = function(locationId, barName, coords, lat, lng, address ){
+  var d = new Date();
+  var m = d.getMonth();
+  d.setMonth(d.getMonth() - 12);
+
+  // If still in same month, set date to last day of 
+  // previous month
+  if (d.getMonth() == m) d.setDate(0);
+  d.setHours(0,0,0);
+
+  // Get the time value in milliseconds and convert to seconds
+  var timeStamp = d/1000;
+
+  return new Promise(function(resolve, reject){
+    instagram.locations.recent({ location_id: locationId, min_timestamp: timeStamp,
+      complete: function(data){
+        // 'data' is an array of photo-objects for a specific location
+        resolve({barName:barName, lat: lat, lng: lng, address: address, data: data});
+      },error: function(errorMessage, errorObject, caller){
+        reject(errorMessage);
+        // console.log(errorMessage);
+      }
+    });
+  });
+};
+
+
+
+/**
+* Gets instagram location info based on foursquare ID
+*/
+var getInstaLocation = function(foursquareId, barName, coords, lat, lng, address, dist){
+  return new Promise(function(resolve, reject){
+    instagram.locations.search({ foursquare_v2_id: foursquareId, 
+      complete: function(data){
+        console.log('instagram location info request data: ', data);
+        if (data.length === 0) {
+          resolve();
+        }else{
+          resolve({
+            instagramLocationId: data[0].id,
+            barName: barName, 
+            coords: coords, 
+            lat: lat,
+            lng: lng,
+            address: address
+          });
+        }
+      },error: function(errorMessage, errorObject, caller){
+        reject(errorMessage);
+        console.log(errorMessage);
+        // console.log(errorMessage);
+      } 
+    });
+  });
+};
+
+
+
+/**
+* Format instagram data object to send back to client
+*/
+var photoParser = function(barName, lat, lng, address, photoObjArr){
+  var results = [];
+  var locationPhotoObj = { barName: barName, location: {latitude: lat, longitude: lng, address: address}, photos: [] };
+  for(var i = 0; i &lt; photoObjArr.length; i++){
+    locationPhotoObj.photos.push({
+      link: photoObjArr[i].link,
+      url: photoObjArr[i].images.low_resolution.url
+    });
+  }
+
+  return locationPhotoObj;
+
+};
+
+
+
+/**
+* This gets called first
+* Recieves array of locations' data
+*/
+
+var obtainInstaData = function(instaData){
+  return new Promise(function(resolve, reject){
+  
+    var lat, lng, barName, foursquare_v2_id, address; 
+    var dist = 300; // dist unit: m, max: 5000m --- distance around lat+lng to look for photos
+    var instaLocationPromiseArr = [];
+
+    // get the instagram id of each location based on the foursquare id
+    for (var i = 0; i &lt; instaData.length; i++){
+      foursquare_v2_id = instaData[i].foursquare_v2_id;
+      barName = instaData[i].name;
+      lat = instaData[i].coordinates.lat;
+      lng = instaData[i].coordinates.lng;
+      address = instaData[i].address;
+      // save each promise in an array
+      instaLocationPromiseArr.push( getInstaLocation( foursquare_v2_id, barName, instaData, lat, lng, address, dist ) );
+    }
+
+    // once all promises are resolved, look up photos tagged with each location
+    Promise.all( instaLocationPromiseArr ).then(function(resultsArr){
+      var instaDataPromiseArr = [];
+
+      // filter out results where instagram did not find a location matching a foursquare ID
+      resultsArr = resultsArr.filter(function(location){
+        return location !== undefined;
+      });
+
+      for (var i = 0; i &lt; resultsArr.length; i++){
+        var instagramLocationId = resultsArr[i].instagramLocationId;
+        var barName = resultsArr[i].barName;
+        var  coords = resultsArr[i].coords;
+        var  lat = resultsArr[i].lat;
+        var  lng = resultsArr[i].lng;
+        var address = resultsArr[i].address;
+
+        instaDataPromiseArr.push( getInstaDataById( instagramLocationId, barName, coords, lat, lng, address ) );
+      }
+
+      return Promise.all( instaDataPromiseArr );
+      // once all promises are resolved, format the data for each location to send to client
+    }).then(function(resultsArr){
+      var parsedResultsArr = [];
+
+      // format each location's data to send back to client
+      for(var i = 0; i &lt; resultsArr.length; i++){
+        var barName = resultsArr[i].barName;
+        var lat = resultsArr[i].lat;
+        var lng = resultsArr[i].lng;
+        var address = resultsArr[i].address;
+        var photoObjArr = resultsArr[i].data;
+
+        parsedResultsArr.push( photoParser(barName, lat, lng, address, photoObjArr) );
+      }
+
+      resolve(parsedResultsArr);
+
+    });
+
+  });
+};
+
+
+
+module.exports = {
+  obtainInstaData: obtainInstaData
+};
+
+</pre>
+	</article>
+</section>
+
+
+
+
+
+		</div>
+	</div>
+
+	<div class="clearfix"></div>
+
+	
+
+</div>
+</div>
+
+
+<footer>
+
+
+	<span class="copyright">
+	DocStrap Copyright © 2012-2014 The contributors to the JSDoc3 and DocStrap projects.
+	</span>
+	<br />
+
+<span class="jsdoc-message">
+	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.2</a>
+	on Fri Jul 31st 2015 using the <a
+	href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+</span>
+</footer>
+
+<!--<script src="scripts/sunlight.js"></script>-->
+<script src="scripts/docstrap.lib.js"></script>
+<script src="scripts/bootstrap-dropdown.js"></script>
+<script src="scripts/toc.js"></script>
+
+<script>
+$( function () {
+	$( "[id*='$']" ).each( function () {
+		var $this = $( this );
+
+		$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
+	} );
+
+	$( "#toc" ).toc( {
+		anchorName  : function ( i, heading, prefix ) {
+			return $( heading ).attr( "id" ) || ( prefix + i );
+		},
+		selectors   : "h1,h2,h3,h4",
+		showAndHide : false,
+		scrollTo    : "100px"
+	} );
+
+	$( "#toc>ul" ).addClass( "nav nav-pills nav-stacked" );
+	$( "#main span[id^='toc']" ).addClass( "toc-shim" );
+	$( '.dropdown-toggle' ).dropdown();
+	//			$( ".tutorial-section pre, .readme-section pre" ).addClass( "sunlight-highlight-javascript" ).addClass( "linenums" );
+
+	$( ".tutorial-section pre, .readme-section pre" ).each( function () {
+		var $this = $( this );
+
+		var example = $this.find( "code" );
+		exampleText = example.html();
+		var lang = /{@lang (.*?)}/.exec( exampleText );
+		if ( lang && lang[1] ) {
+			exampleText = exampleText.replace( lang[0], "" );
+			example.html( exampleText );
+			lang = lang[1];
+		} else {
+			lang = "javascript";
+		}
+
+		if ( lang ) {
+
+			$this
+			.addClass( "sunlight-highlight-" + lang )
+			.addClass( "linenums" )
+			.html( example.html() );
+
+		}
+	} );
+
+	Sunlight.highlightAll( {
+		lineNumbers : true,
+		showMenu : true,
+		enableDoclinks : true
+	} );
+} );
+</script>
+
+
+
+<!--Navigation and Symbol Display-->
+
+
+<!--Google Analytics-->
+
+
+</body>
+</html>
