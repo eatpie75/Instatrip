@@ -27,14 +27,14 @@
 			<li class="dropdown">
 				<a href="modules.list.html" class="dropdown-toggle" data-toggle="dropdown">Modules<b class="caret"></b></a>
 				<ul class="dropdown-menu ">
-					<li><a href="module-foursquare.html">foursquare</a></li><li><a href="module-maps.html">maps</a></li>
+					<li><a href="module-foursquare.html">foursquare</a></li><li><a href="module-instagram.html">instagram</a></li><li><a href="module-maps.html">maps</a></li>
 				</ul>
 			</li>
 			
 			<li class="dropdown">
 				<a href="global.html" class="dropdown-toggle" data-toggle="dropdown">Global<b class="caret"></b></a>
 				<ul class="dropdown-menu ">
-					<li><a href="global.html#getInstaDataById">getInstaDataById</a></li><li><a href="global.html#getInstaLocation">getInstaLocation</a></li><li><a href="global.html#obtainInstaData">obtainInstaData</a></li><li><a href="global.html#photoParser">photoParser</a></li>
+					<li><a href="global.html#getPriceEstimates">getPriceEstimates</a></li>
 				</ul>
 			</li>
 			
@@ -134,7 +134,7 @@
         <dl>
             
 <dt>
-    <h4 class="name" id="getInstaDataById"><span class="type-signature"></span>getInstaDataById<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="getPriceEstimates"><span class="type-signature"></span>getPriceEstimates<span class="signature">(latitude, longitude, end_latitude, end_longitude)</span><span class="type-signature"> &rarr; {Promise.&lt;Array.&lt;Object>>}</span></h4>
     
     
 </dt>
@@ -142,8 +142,7 @@
     
     
     <div class="description">
-        <p>Gets instagram photos tagged with a specific location.
-Searches by instagram-location-ID</p>
+        <p>Gets prices estimates from Uber</p>
     </div>
     
 
@@ -152,6 +151,124 @@ Searches by instagram-location-ID</p>
     
     
     
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>latitude</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Float</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>longitude</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Float</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>end_latitude</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Float</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>end_longitude</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Float</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
     
     
     
@@ -189,8 +306,8 @@ Searches by instagram-location-ID</p>
 	<dd class="tag-source">
 		<ul class="dummy">
 			<li>
-				<a href="instagram.js.html">instagram.js</a>,
-				 <a href="instagram.js.html#sunlight-1-line-21">line 21</a>
+				<a href="uber.js.html">uber.js</a>,
+				 <a href="uber.js.html#sunlight-1-line-20">line 20</a>
 			</li>
 		</ul>
 	</dd>
@@ -215,268 +332,25 @@ Searches by instagram-location-ID</p>
     
     
     
+    <h5>Returns:</h5>
     
-    
-</dd>
+            
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type">Promise.&lt;Array.&lt;Object>></span>
+
+
+	</dd>
+</dl>
+
 
         
-            
-<dt>
-    <h4 class="name" id="getInstaLocation"><span class="type-signature"></span>getInstaLocation<span class="signature">()</span><span class="type-signature"></span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-    <div class="description">
-        <p>Gets instagram location info based on foursquare ID</p>
-    </div>
-    
-
-    
-
-    
-    
-    
-    
-    
-    
-<dl class="details">
-	
-
-	
-
-	
-
-	
-
-    
-
-    
-
-    
-
-    
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-	<dt class="tag-source">Source:</dt>
-	<dd class="tag-source">
-		<ul class="dummy">
-			<li>
-				<a href="instagram.js.html">instagram.js</a>,
-				 <a href="instagram.js.html#sunlight-1-line-52">line 52</a>
-			</li>
-		</ul>
-	</dd>
-	
-
-	
-
-	
-
-	
-</dl>
-
-    
-    
-
-    
-
-    
-
-    
-    
-    
-    
-    
-    
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="obtainInstaData"><span class="type-signature"></span>obtainInstaData<span class="signature">()</span><span class="type-signature"></span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-    <div class="description">
-        <p>This gets called first
-Recieves array of locations' data</p>
-    </div>
-    
-
-    
-
-    
-    
-    
-    
-    
-    
-<dl class="details">
-	
-
-	
-
-	
-
-	
-
-    
-
-    
-
-    
-
-    
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-	<dt class="tag-source">Source:</dt>
-	<dd class="tag-source">
-		<ul class="dummy">
-			<li>
-				<a href="instagram.js.html">instagram.js</a>,
-				 <a href="instagram.js.html#sunlight-1-line-104">line 104</a>
-			</li>
-		</ul>
-	</dd>
-	
-
-	
-
-	
-
-	
-</dl>
-
-    
-    
-
-    
-
-    
-
-    
-    
-    
-    
-    
-    
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="photoParser"><span class="type-signature"></span>photoParser<span class="signature">()</span><span class="type-signature"></span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-    <div class="description">
-        <p>Format instagram data object to send back to client</p>
-    </div>
-    
-
-    
-
-    
-    
-    
-    
-    
-    
-<dl class="details">
-	
-
-	
-
-	
-
-	
-
-    
-
-    
-
-    
-
-    
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-	<dt class="tag-source">Source:</dt>
-	<dd class="tag-source">
-		<ul class="dummy">
-			<li>
-				<a href="instagram.js.html">instagram.js</a>,
-				 <a href="instagram.js.html#sunlight-1-line-83">line 83</a>
-			</li>
-		</ul>
-	</dd>
-	
-
-	
-
-	
-
-	
-</dl>
-
-    
-    
-
-    
-
-    
-
-    
-    
-    
-    
-    
     
     
 </dd>
