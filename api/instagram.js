@@ -1,3 +1,7 @@
+/**
+ * @module instagram
+ */
+
 var instagram = require('instagram-node-lib');
 var Promise = require('bluebird');
 
@@ -13,32 +17,72 @@ instagram.set('client_id', keys.INSTAGRAM_ID);
 instagram.set('client_secret', keys.INSTAGRAM_SECRET);
 
 
-
 /**
-* Gets instagram photos tagged with a specific location.
-* Searches by instagram-location-ID
-*/
-var getInstaDataById = function(locationId, barName, coords, lat, lng, address ){
-  var d = new Date();
-  var m = d.getMonth();
-  d.setMonth(d.getMonth() - 12);
+ * Gets instagram photos tagged with a specific location.
+ * Searches by instagram-location-ID
+ * @param  {Integer} locationId
+ * @param  {String} barName
+ * @param  {Float} lat
+ * @param  {Float} lng
+ * @param  {String} address
+ * @return {Promise.<Object>}
+ */
+var getInstaDataById = function(locationId, barName, coords, lat, lng, address ) {
+  var date = new dateate();
+  var month = date.getMonth();
+  date.setMonth(date.getMonth() - 12);
 
-  // If still in same month, set date to last day of 
-  // previous month
-  if (d.getMonth() == m) d.setDate(0);
-  d.setHours(0,0,0);
+  // If still in same month, set date to last day of previous month
+  if (date.getMonth() === month) {
+    date.setDate(0);
+  }
+
+  date.setHours(0, 0, 0);
 
   // Get the time value in milliseconds and convert to seconds
-  var timeStamp = d/1000;
+  var timeStamp = date / 1000;
 
   return new Promise(function(resolve, reject){
     instagram.locations.recent({ location_id: locationId, min_timestamp: timeStamp,
       complete: function(data){
         // 'data' is an array of photo-objects for a specific location
-        resolve({barName:barName, lat: lat, lng: lng, address: address, data: data});
-      },error: function(errorMessage, errorObject, caller){
+        resolve({barName: barName, lat: lat, lng: lng, address: address, data: data});
+      }, error: function(errorMessage, errorObject, caller){
         reject(errorMessage);
-        // console.log(errorMessage);
+      }
+    });
+  });
+};
+
+
+/**
+ * Gets instagram location info based on foursquare ID
+ * @param  {Integer} foursquareId
+ * @param  {String} barName
+ * @param  {Float} lat
+ * @param  {Float} lng
+ * @param  {String} address
+ * @return {Promise.<Object>}
+ */
+var getInstaLocation = function(foursquareId, barName, coords, lat, lng, address, dist){
+  return new Promise(function(resolve, reject){
+    instagram.locations.search({
+      foursquare_v2_id: foursquareId,
+      complete: function(data) {
+        if (data.length === 0) {
+          resolve();
+        } else {
+          resolve({
+            instagramLocationId: data[0].id,
+            barName: barName,
+            coords: coords,
+            lat: lat,
+            lng: lng,
+            address: address
+          });
+        }
+      }, error: function(errorMessage, errorObject, caller){
+        reject(errorMessage);
       }
     });
   });
@@ -47,41 +91,15 @@ var getInstaDataById = function(locationId, barName, coords, lat, lng, address )
 
 
 /**
-* Gets instagram location info based on foursquare ID
-*/
-var getInstaLocation = function(foursquareId, barName, coords, lat, lng, address, dist){
-  return new Promise(function(resolve, reject){
-    instagram.locations.search({ foursquare_v2_id: foursquareId, 
-      complete: function(data){
-        console.log('instagram location info request data: ', data);
-        if (data.length === 0) {
-          resolve();
-        }else{
-          resolve({
-            instagramLocationId: data[0].id,
-            barName: barName, 
-            coords: coords, 
-            lat: lat,
-            lng: lng,
-            address: address
-          });
-        }
-      },error: function(errorMessage, errorObject, caller){
-        reject(errorMessage);
-        console.log(errorMessage);
-        // console.log(errorMessage);
-      } 
-    });
-  });
-};
-
-
-
-/**
-* Format instagram data object to send back to client
-*/
+ * Format instagram data object to send back to client
+ * @param  {String} barName
+ * @param  {Float} lat
+ * @param  {Float} lng
+ * @param  {String} address
+ * @param  {Object[]} photoObjArr
+ * @return {Object}
+ */
 var photoParser = function(barName, lat, lng, address, photoObjArr){
-  var results = [];
   var locationPhotoObj = { barName: barName, location: {latitude: lat, longitude: lng, address: address}, photos: [] };
   for(var i = 0; i < photoObjArr.length; i++){
     locationPhotoObj.photos.push({
@@ -91,20 +109,17 @@ var photoParser = function(barName, lat, lng, address, photoObjArr){
   }
 
   return locationPhotoObj;
-
 };
 
 
-
 /**
-* This gets called first
-* Recieves array of locations' data
-*/
-
+ * Recieves array of locations' data
+ * @param  {Object[]} instaData
+ * @return {Promise.<Array>}
+ */
 var obtainInstaData = function(instaData){
-  return new Promise(function(resolve, reject){
-  
-    var lat, lng, barName, foursquare_v2_id, address; 
+  return new Promise(function(resolve, reject) {
+    var lat, lng, barName, foursquare_v2_id, address;
     var dist = 300; // dist unit: m, max: 5000m --- distance around lat+lng to look for photos
     var instaLocationPromiseArr = [];
 
@@ -156,13 +171,9 @@ var obtainInstaData = function(instaData){
       }
 
       resolve(parsedResultsArr);
-
     });
-
   });
 };
-
-
 
 module.exports = {
   obtainInstaData: obtainInstaData
