@@ -1,3 +1,7 @@
+/**
+ * @module uber
+ */
+
 var Promise = require('bluebird');
 var request = require('request-promise');
 
@@ -9,7 +13,14 @@ if (process.env.NODE_ENV === 'production') {
   keys = require('../config.js');
 }
 
-
+/**
+ * Gets prices estimates from Uber
+ * @param  {Float} latitude
+ * @param  {Float} longitude
+ * @param  {Float} end_latitude
+ * @param  {Float} end_longitude
+ * @return {Promise.<Array>}
+ */
 var getPriceEstimates = function(latitude, longitude, end_latitude, end_longitude) {
   return request({
     uri: 'https://api.uber.com/v1/estimates/price',
@@ -30,6 +41,12 @@ var getPriceEstimates = function(latitude, longitude, end_latitude, end_longitud
   });
 };
 
+/**
+ * Gets estimated time to driver fomr Uber
+ * @param  {Float} latitude
+ * @param  {Float} longitude
+ * @return {Promise.<Array>}
+ */
 var getTimeEstimates = function(latitude, longitude) {
   return request({
       uri: 'https://api.uber.com/v1/estimates/time',
@@ -48,6 +65,14 @@ var getTimeEstimates = function(latitude, longitude) {
     });
   };
 
+/**
+ * Combines time and prices estimates from Uber
+ * @param  {Float} latitude
+ * @param  {Float} longitude
+ * @param  {Float} end_latitude
+ * @param  {Float} end_longitude
+ * @return {Promise.<Array>}
+ */
 var get_uber_data = function(latitude, longitude, end_latitude, end_longitude){
   var calls = [getPriceEstimates(latitude, longitude, end_latitude, end_longitude), getTimeEstimates(latitude, longitude)];
   return Promise.all(calls).then(function(data_array) {
